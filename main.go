@@ -1,4 +1,4 @@
-package mcsauna
+package main
 
 import (
 	"bytes"
@@ -15,6 +15,13 @@ const (
 	ERR_TRUNCATED_CMD
 	ERR_INCOMPLETE_CMD
 )
+
+// How many keys we must capture before the hot key pool is rotated and
+// reported on.
+const ROTATE_THRESHOLD = 10000
+
+// Number of top keys to report back
+const REPORT_THRESHOLD = 10
 
 // We only need to capture the first N bytes of a packet to get the command
 // and key name.  Commands can be as long as 7 characters, keys can be 250
@@ -75,6 +82,8 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 }
 
 func main() {
+	hot_keys := NewHotKeyPool()
+
 	// TODO: Flag for interface, port
 	handle, err := pcap.OpenLive("lo", CAPTURE_SIZE, true, pcap.BlockForever)
 	if err != nil {
@@ -85,6 +94,7 @@ func main() {
 		panic(err)
 	}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	i := 0
 	for packet := range packetSource.Packets() {
 		app_data := packet.ApplicationLayer()
 		if app_data == nil {
@@ -94,7 +104,21 @@ func main() {
 		// Process data
 		cmd, keys, cmd_err := parseCommand(app_data.Payload())
 		if cmd_err == ERR_NONE {
-			fmt.Printf("%s -> %s\n", cmd, strings.Join(keys, ", "))
+			hot_keys.Add(keys)
+		}
+		_ = cmd
+
+		// Report hot keys
+		i += len(keys)
+		if i > ROTATE_THRESHOLD {
+			i = 0
+			old_hot_keys := hot_keys.Rotate()
+			top_keys := old_hot_keys.GetTopKeys()
+			for i := 0; i < REPORT_THRESHOLD; i++ {
+				key := top_keys[i]
+				hits := old_hot_keys.GetHits(key)
+				fmt.Printf("key: %s, hits: %d\n", key, hits)
+			}
 		}
 	}
 }

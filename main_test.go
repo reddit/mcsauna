@@ -1,4 +1,4 @@
-package mcsauna
+package main
 
 import (
 	"testing"
