@@ -6,6 +6,7 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"strings"
+	"time"
 )
 
 const (
@@ -20,8 +21,9 @@ const (
 // reported on.
 const ROTATE_THRESHOLD = 10000
 
-// Number of top keys to report back
-const REPORT_THRESHOLD = 10
+const NUM_KEYS_TO_REPORT = 10
+
+const REPORT_INTERVAL = 10 // Seconds
 
 // We only need to capture the first N bytes of a packet to get the command
 // and key name.  Commands can be as long as 7 characters, keys can be 250
@@ -81,6 +83,23 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 	return cmd, keys, ERR_NONE
 }
 
+func startReportingLoop(hot_keys *HotKeyPool) {
+	sleep_duration := REPORT_INTERVAL * time.Second
+	time.Sleep(sleep_duration)
+	for {
+		st := time.Now()
+		rotated_keys := hot_keys.Rotate()
+		top_keys := rotated_keys.GetTopKeys()
+		for i := 0; i < NUM_KEYS_TO_REPORT; i++ {
+			key := top_keys[i]
+			hits := rotated_keys.GetHits(key)
+			fmt.Printf("key: %s, hits: %d\n", key, hits)
+		}
+		elapsed := time.Now().Sub(st)
+		time.Sleep(sleep_duration - elapsed)
+	}
+}
+
 func main() {
 	hot_keys := NewHotKeyPool()
 
@@ -94,7 +113,7 @@ func main() {
 		panic(err)
 	}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	i := 0
+	go startReportingLoop(hot_keys)
 	for packet := range packetSource.Packets() {
 		app_data := packet.ApplicationLayer()
 		if app_data == nil {
@@ -108,17 +127,5 @@ func main() {
 		}
 		_ = cmd
 
-		// Report hot keys
-		i += len(keys)
-		if i > ROTATE_THRESHOLD {
-			i = 0
-			old_hot_keys := hot_keys.Rotate()
-			top_keys := old_hot_keys.GetTopKeys()
-			for i := 0; i < REPORT_THRESHOLD; i++ {
-				key := top_keys[i]
-				hits := old_hot_keys.GetHits(key)
-				fmt.Printf("key: %s, hits: %d\n", key, hits)
-			}
-		}
 	}
 }

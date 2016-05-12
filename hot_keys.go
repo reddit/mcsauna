@@ -109,13 +109,10 @@ func (h *HotKeyPool) Rotate() *HotKeyPool {
 
 KEY_LIMIT and GROWTH_LIMIT
 
-
 channel -> N size pool -> main pool
 
 Messages get put into the first channel, pulled off and counted into N size
 pool.  This pool is exactly the same as the main pool.  When it reaches X size,
 it gets merged with main pool.
-
-For clearing out the pools, there is a simple lock that returns the old data
 
 */
