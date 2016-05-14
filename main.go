@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
+	"io/ioutil"
 	"strings"
 	"time"
 )
@@ -91,6 +93,9 @@ func startReportingLoop(hot_keys *HotKeyPool) {
 		rotated_keys := hot_keys.Rotate()
 		top_keys := rotated_keys.GetTopKeys()
 		for i := 0; i < NUM_KEYS_TO_REPORT; i++ {
+			if len(top_keys) <= i {
+				break
+			}
 			key := top_keys[i]
 			hits := rotated_keys.GetHits(key)
 			fmt.Printf("key: %s, hits: %d\n", key, hits)
@@ -101,6 +106,24 @@ func startReportingLoop(hot_keys *HotKeyPool) {
 }
 
 func main() {
+
+	// Parse Args
+	regexp_file := flag.String("r", "", "file to load list of regexps from")
+	flag.Parse()
+	regexp_keys := NewRegexpKeys()
+	if *regexp_file != "" {
+		regexp_data, _ := ioutil.ReadFile(*regexp_file)
+		regexps := strings.Split(string(regexp_data), "\n")
+		for _, re := range regexps {
+			// TODO: Parse a name
+			regexp_key, err := NewRegexpKey(re, "")
+			if err != nil {
+				panic(err)
+			}
+			regexp_keys.Add(regexp_key)
+		}
+	}
+
 	hot_keys := NewHotKeyPool()
 
 	// TODO: Flag for interface, port
@@ -123,7 +146,20 @@ func main() {
 		// Process data
 		cmd, keys, cmd_err := parseCommand(app_data.Payload())
 		if cmd_err == ERR_NONE {
-			hot_keys.Add(keys)
+
+			// Process raw key
+			if *regexp_file == "" {
+				hot_keys.Add(keys)
+			} else {
+
+				// Process via regex
+				matches := []string{}
+				for _, key := range keys {
+					matched_regex := regexp_keys.Match(key)
+					matches = append(matches, matched_regex)
+				}
+				hot_keys.Add(matches)
+			}
 		}
 		_ = cmd
 
