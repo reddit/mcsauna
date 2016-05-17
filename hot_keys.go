@@ -104,15 +104,3 @@ func (h *HotKeyPool) Rotate() *HotKeyPool {
 	h.hotness_by_key = map[string]*Hotness{}
 	return new_hot_key_pool
 }
-
-/*
-
-KEY_LIMIT and GROWTH_LIMIT
-
-channel -> N size pool -> main pool
-
-Messages get put into the first channel, pulled off and counted into N size
-pool.  This pool is exactly the same as the main pool.  When it reaches X size,
-it gets merged with main pool.
-
-*/
