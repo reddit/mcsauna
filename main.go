@@ -77,13 +77,17 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 	return cmd, keys, ERR_NONE
 }
 
-func startReportingLoop(config Config, hot_keys *HotKeyPool) {
+// startReportingLoop starts a loop that will periodically output statistics
+// on the hottest keys, and optionally, errors that occured in parsing.
+func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool) {
 	sleep_duration := time.Duration(config.Interval) * time.Second
 	time.Sleep(sleep_duration)
 	for {
 		st := time.Now()
 		rotated_keys := hot_keys.Rotate()
 		top_keys := rotated_keys.GetTopKeys()
+		rotated_errors := errors.Rotate()
+		top_errors := rotated_errors.GetTopKeys()
 
 		// Build output
 		output := ""
@@ -94,6 +98,14 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool) {
 			key := top_keys[i]
 			hits := rotated_keys.GetHits(key)
 			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key, hits)
+		}
+		if config.ShowErrors {
+			for i := 0; i < len(top_errors); i++ {
+				error_name := top_errors[i]
+				hits := rotated_errors.GetHits(error_name)
+				output += fmt.Sprintf(
+					"mcsauna.errors.%s: %d\n", error_name, hits)
+			}
 		}
 
 		// Write to stdout
@@ -172,6 +184,7 @@ func main() {
 	}
 
 	hot_keys := NewHotKeyPool()
+	errors := NewHotKeyPool()
 
 	// Setup pcap
 	handle, err := pcap.OpenLive(config.Interface, CAPTURE_SIZE, true, pcap.BlockForever)
@@ -185,7 +198,7 @@ func main() {
 	}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	go startReportingLoop(config, hot_keys)
+	go startReportingLoop(config, hot_keys, errors)
 
 	// Grab a packet
 	for packet := range packetSource.Packets() {
@@ -211,6 +224,8 @@ func main() {
 				}
 				hot_keys.Add(matches)
 			}
+		} else if cmd_err == ERR_TRUNCATED_CMD {
+			errors.Add([]string{"truncated"})
 		}
 
 	}

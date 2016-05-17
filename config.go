@@ -23,7 +23,7 @@ type Config struct {
 func NewConfig(config_data []byte) (config Config, err error) {
 	config = Config{
 		Regexps:          []RegexpConfig{},
-		Interval:         60,
+		Interval:         5,
 		Interface:        "any",
 		Port:             11211,
 		NumItemsToReport: 20,
