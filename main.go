@@ -128,13 +128,13 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool)
 
 func main() {
 	config_file := flag.String("c", "", "config file")
-	interval := flag.Int("n", 0, "reporting interval (seconds, default: 5)")
-	network_interface := flag.String("i", "", "capture interface (default: any)")
-	port := flag.Int("p", 0, "capture port (default: 11211)")
-	num_items_to_report := flag.Int("r", 0, "number of items to report (default: 20)")
-	quiet := flag.Bool("q", false, "suppress stdout output")
+	interval := flag.Int("n", 0, "reporting interval (seconds, default 5)")
+	network_interface := flag.String("i", "", "capture interface (default any)")
+	port := flag.Int("p", 0, "capture port (default 11211)")
+	num_items_to_report := flag.Int("r", 0, "number of items to report (default 20)")
+	quiet := flag.Bool("q", false, "suppress stdout output (default false)")
 	output_file := flag.String("w", "", "file to write output to")
-	show_errors := flag.Bool("e", true, "show errors in parsing as a metric (default: true)")
+	show_errors := flag.Bool("e", true, "show errors in parsing as a metric")
 	flag.Parse()
 
 	// Parse Config
