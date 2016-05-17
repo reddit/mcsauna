@@ -19,10 +19,6 @@ const (
 	ERR_INCOMPLETE_CMD
 )
 
-// How many keys we must capture before the hot key pool is rotated and
-// reported on.
-const ROTATE_THRESHOLD = 10000
-
 // We only need to capture the first N bytes of a packet to get the command
 // and key name.  Commands can be as long as 7 characters, keys can be 250
 // characters, and we need to take into account the space in between.
