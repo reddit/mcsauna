@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/google/gopacket"
@@ -23,10 +22,6 @@ const (
 // How many keys we must capture before the hot key pool is rotated and
 // reported on.
 const ROTATE_THRESHOLD = 10000
-
-const NUM_KEYS_TO_REPORT = 10
-
-const REPORT_INTERVAL = 10 // Seconds
 
 // We only need to capture the first N bytes of a packet to get the command
 // and key name.  Commands can be as long as 7 characters, keys can be 250
@@ -86,14 +81,14 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 	return cmd, keys, ERR_NONE
 }
 
-func startReportingLoop(hot_keys *HotKeyPool) {
-	sleep_duration := REPORT_INTERVAL * time.Second
+func startReportingLoop(report_interval int, num_items_to_report int, hot_keys *HotKeyPool) {
+	sleep_duration := time.Duration(report_interval) * time.Second
 	time.Sleep(sleep_duration)
 	for {
 		st := time.Now()
 		rotated_keys := hot_keys.Rotate()
 		top_keys := rotated_keys.GetTopKeys()
-		for i := 0; i < NUM_KEYS_TO_REPORT; i++ {
+		for i := 0; i < num_items_to_report; i++ {
 			if len(top_keys) <= i {
 				break
 			}
@@ -108,19 +103,40 @@ func startReportingLoop(hot_keys *HotKeyPool) {
 
 func main() {
 	config_file := flag.String("c", "", "config file")
+	interval := flag.Int("n", 0, "reporting interval (seconds)")
+	network_interface := flag.String("i", "", "capture interface")
+	port := flag.Int("p", 0, "capture port")
+	num_items_to_report := flag.Int("r", 0, "number of items to report")
 	flag.Parse()
 
 	// Parse Config
-	config := Config{}
+	var config Config
+	var err error
 	if *config_file != "" {
 		config_data, _ := ioutil.ReadFile(*config_file)
-		err := json.Unmarshal(config_data, &config)
+		config, err = NewConfig(config_data)
 		if err != nil {
 			panic(err)
 		}
+	} else {
+		config, err = NewConfig([]byte{})
 	}
 
-	// Parse Args
+	// Parse CLI Args
+	if *interval != 0 {
+		config.Interval = *interval
+	}
+	if *network_interface != "" {
+		config.Interface = *network_interface
+	}
+	if *port != 0 {
+		config.Port = *port
+	}
+	if *num_items_to_report != 0 {
+		config.NumItemsToReport = *num_items_to_report
+	}
+
+	// Build Regexps
 	regexp_keys := NewRegexpKeys()
 	for _, re := range config.Regexps {
 		regexp_key, err := NewRegexpKey(re.Re, re.Name)
@@ -132,17 +148,21 @@ func main() {
 
 	hot_keys := NewHotKeyPool()
 
-	// TODO: Flag for interface, port
-	handle, err := pcap.OpenLive("lo", CAPTURE_SIZE, true, pcap.BlockForever)
+	// Setup pcap
+	handle, err := pcap.OpenLive(config.Interface, CAPTURE_SIZE, true, pcap.BlockForever)
 	if err != nil {
 		panic(err)
 	}
-	err = handle.SetBPFFilter("tcp and dst port 11211")
+	filter := fmt.Sprintf("tcp and dst port %d", config.Port)
+	err = handle.SetBPFFilter(filter)
 	if err != nil {
 		panic(err)
 	}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	go startReportingLoop(hot_keys)
+
+	go startReportingLoop(config.Interval, config.NumItemsToReport, hot_keys)
+
+	// Grab a packet
 	for packet := range packetSource.Packets() {
 		app_data := packet.ApplicationLayer()
 		if app_data == nil {
@@ -150,15 +170,15 @@ func main() {
 		}
 
 		// Process data
-		cmd, keys, cmd_err := parseCommand(app_data.Payload())
+		_, keys, cmd_err := parseCommand(app_data.Payload())
 		if cmd_err == ERR_NONE {
 
-			// Process raw key
+			// Raw key
 			if len(config.Regexps) == 0 {
 				hot_keys.Add(keys)
 			} else {
 
-				// Process via regex
+				// Regex
 				matches := []string{}
 				for _, key := range keys {
 					matched_regex := regexp_keys.Match(key)
@@ -167,7 +187,6 @@ func main() {
 				hot_keys.Add(matches)
 			}
 		}
-		_ = cmd
 
 	}
 }
