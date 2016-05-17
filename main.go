@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/google/gopacket"
@@ -106,22 +107,27 @@ func startReportingLoop(hot_keys *HotKeyPool) {
 }
 
 func main() {
+	config_file := flag.String("c", "", "config file")
+	flag.Parse()
+
+	// Parse Config
+	config := Config{}
+	if *config_file != "" {
+		config_data, _ := ioutil.ReadFile(*config_file)
+		err := json.Unmarshal(config_data, &config)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	// Parse Args
-	regexp_file := flag.String("r", "", "file to load list of regexps from")
-	flag.Parse()
 	regexp_keys := NewRegexpKeys()
-	if *regexp_file != "" {
-		regexp_data, _ := ioutil.ReadFile(*regexp_file)
-		regexps := strings.Split(string(regexp_data), "\n")
-		for _, re := range regexps {
-			// TODO: Parse a name
-			regexp_key, err := NewRegexpKey(re, "")
-			if err != nil {
-				panic(err)
-			}
-			regexp_keys.Add(regexp_key)
+	for _, re := range config.Regexps {
+		regexp_key, err := NewRegexpKey(re.Re, re.Name)
+		if err != nil {
+			panic(err)
 		}
+		regexp_keys.Add(regexp_key)
 	}
 
 	hot_keys := NewHotKeyPool()
@@ -148,7 +154,7 @@ func main() {
 		if cmd_err == ERR_NONE {
 
 			// Process raw key
-			if *regexp_file == "" {
+			if len(config.Regexps) == 0 {
 				hot_keys.Add(keys)
 			} else {
 
