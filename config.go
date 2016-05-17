@@ -15,6 +15,9 @@ type Config struct {
 	Interface        string         `json:"interface"`
 	Port             int            `json:"port"`
 	NumItemsToReport int            `json:"num_items_to_report"`
+	Quiet            bool           `json:"quiet"`
+	OutputFile       string         `json:"output_file"`
+	ShowErrors       bool           `json:"show_errors"`
 }
 
 func NewConfig(config_data []byte) (config Config, err error) {
@@ -24,6 +27,8 @@ func NewConfig(config_data []byte) (config Config, err error) {
 		Interface:        "any",
 		Port:             11211,
 		NumItemsToReport: 20,
+		Quiet:            false,
+		ShowErrors:       true,
 	}
 	err = json.Unmarshal(config_data, &config)
 	if err != nil {

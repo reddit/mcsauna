@@ -81,21 +81,38 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 	return cmd, keys, ERR_NONE
 }
 
-func startReportingLoop(report_interval int, num_items_to_report int, hot_keys *HotKeyPool) {
-	sleep_duration := time.Duration(report_interval) * time.Second
+func startReportingLoop(config Config, hot_keys *HotKeyPool) {
+	sleep_duration := time.Duration(config.Interval) * time.Second
 	time.Sleep(sleep_duration)
 	for {
 		st := time.Now()
 		rotated_keys := hot_keys.Rotate()
 		top_keys := rotated_keys.GetTopKeys()
-		for i := 0; i < num_items_to_report; i++ {
+
+		// Build output
+		output := ""
+		for i := 0; i < config.NumItemsToReport; i++ {
 			if len(top_keys) <= i {
 				break
 			}
 			key := top_keys[i]
 			hits := rotated_keys.GetHits(key)
-			fmt.Printf("key: %s, hits: %d\n", key, hits)
+			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key, hits)
 		}
+
+		// Write to stdout
+		if !config.Quiet {
+			fmt.Print(output)
+		}
+
+		// Write to file
+		if config.OutputFile != "" {
+			err := ioutil.WriteFile(config.OutputFile, []byte(output), 0666)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		elapsed := time.Now().Sub(st)
 		time.Sleep(sleep_duration - elapsed)
 	}
@@ -107,6 +124,9 @@ func main() {
 	network_interface := flag.String("i", "", "capture interface")
 	port := flag.Int("p", 0, "capture port")
 	num_items_to_report := flag.Int("r", 0, "number of items to report")
+	quiet := flag.Bool("q", false, "suppress stdout output")
+	output_file := flag.String("w", "", "file to write output to")
+	show_errors := flag.Bool("e", true, "show errors in parsing as a metric")
 	flag.Parse()
 
 	// Parse Config
@@ -135,6 +155,15 @@ func main() {
 	if *num_items_to_report != 0 {
 		config.NumItemsToReport = *num_items_to_report
 	}
+	if *quiet != false {
+		config.Quiet = *quiet
+	}
+	if *output_file != "" {
+		config.OutputFile = *output_file
+	}
+	if *show_errors != true {
+		config.ShowErrors = *show_errors
+	}
 
 	// Build Regexps
 	regexp_keys := NewRegexpKeys()
@@ -160,7 +189,7 @@ func main() {
 	}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	go startReportingLoop(config.Interval, config.NumItemsToReport, hot_keys)
+	go startReportingLoop(config, hot_keys)
 
 	// Grab a packet
 	for packet := range packetSource.Packets() {
