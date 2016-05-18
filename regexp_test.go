@@ -24,10 +24,17 @@ func TestRegexp(t *testing.T) {
 
 		// Expected matches
 		for _, key := range test_item.ExpectedMatches {
-			match := regexp_keys.Match(key)
+			match, _ := regexp_keys.Match(key)
 			if match != test_item.Name {
 				t.Errorf("Expected match %s, got %s\n", test_item.Name, match)
 			}
 		}
+	}
+}
+
+func TestRegexpNameReplacement(t *testing.T) {
+	regexp_key, _ := NewRegexpKey("^[a-f|0-9]{32}$", "")
+	if regexp_key.Name != "a-f0-932" {
+		t.Errorf("Expected regexp name %s, got %s", "a-f0-932", regexp_key.Name)
 	}
 }
