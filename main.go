@@ -217,7 +217,7 @@ func main() {
 				matches := []string{}
 				match_errors := []string{}
 				for _, key := range keys {
-					err, matched_regex := regexp_keys.Match(key)
+					matched_regex, err := regexp_keys.Match(key)
 					if err != nil {
 						match_errors = append(match_errors, "match_error")
 					} else {
