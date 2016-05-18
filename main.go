@@ -19,10 +19,7 @@ const (
 	ERR_INCOMPLETE_CMD
 )
 
-// We only need to capture the first N bytes of a packet to get the command
-// and key name.  Commands can be as long as 7 characters, keys can be 250
-// characters, and we need to take into account the space in between.
-const CAPTURE_SIZE = 7 + 1 + 250
+const CAPTURE_SIZE = 9000
 
 var VALID_READ_CMDS = []string{"get", "gets"}
 var VALID_WRITE_CMDS = []string{"set", "add", "replace", "append", "prepend"}
