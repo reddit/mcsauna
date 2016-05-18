@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"regexp"
 )
 
@@ -36,15 +37,15 @@ func (r *RegexpKeys) Add(regexp_key *RegexpKey) {
 
 // Match finds the first regexp that a key matches and returns either its
 // associated name, or the original regex string used in its compilation
-func (r *RegexpKeys) Match(key string) string {
+func (r *RegexpKeys) Match(key string) (error, string) {
 	for _, re := range r.regexp_keys {
 		if re.CompiledRegexp.Match([]byte(key)) {
 			if re.Name != "" {
-				return re.Name
+				return nil, re.Name
 			} else {
-				return re.OriginalRegexp
+				return nil, re.OriginalRegexp
 			}
 		}
 	}
-	return ""
+	return errors.New("Could not match key to regex."), ""
 }

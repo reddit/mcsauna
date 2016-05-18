@@ -215,11 +215,17 @@ func main() {
 
 				// Regex
 				matches := []string{}
+				match_errors := []string{}
 				for _, key := range keys {
-					matched_regex := regexp_keys.Match(key)
-					matches = append(matches, matched_regex)
+					err, matched_regex := regexp_keys.Match(key)
+					if err != nil {
+						match_errors = append(match_errors, "match_error")
+					} else {
+						matches = append(matches, matched_regex)
+					}
 				}
 				hot_keys.Add(matches)
+				errors.Add(match_errors)
 			}
 		} else if cmd_err == ERR_TRUNCATED_CMD {
 			errors.Add([]string{"truncated"})
