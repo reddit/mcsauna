@@ -26,16 +26,6 @@ func NewHotKeyPool() *HotKeyPool {
 	return h
 }
 
-// NewHotKeyPoolFromExisting clones an existing HotKeyPool with a new lock.
-// The caller should handle the locking on the pool that is to be cloned.
-func NewHotKeyPoolFromExisting(existing *HotKeyPool) *HotKeyPool {
-	h := &HotKeyPool{}
-	h.items = existing.items
-	h.keys_by_position = existing.keys_by_position
-	h.hotness_by_key = existing.hotness_by_key
-	return h
-}
-
 // Add adds a new key, incrementing its hit counter and updating its position
 // in the top keys list.
 func (h *HotKeyPool) Add(keys []string) {
@@ -97,7 +87,14 @@ func (h *HotKeyPool) GetHits(key string) int {
 func (h *HotKeyPool) Rotate() *HotKeyPool {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
-	new_hot_key_pool := NewHotKeyPoolFromExisting(h)
+
+	// Clone existing
+	new_hot_key_pool := &HotKeyPool{}
+	new_hot_key_pool.items = h.items
+	new_hot_key_pool.keys_by_position = h.keys_by_position
+	new_hot_key_pool.hotness_by_key = h.hotness_by_key
+
+	// Clear existing values
 	h.items = 0
 	h.keys_by_position = []string{}
 	h.hotness_by_key = map[string]*Hotness{}
