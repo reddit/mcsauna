@@ -16,6 +16,11 @@ Errors in processing are reported in the format:
 If you are using diamond, you can output these to a file and watch via
 [FilesCollector](http://diamond.readthedocs.io/en/latest/collectors/FilesCollector/).
 
+Note that at the moment, TCP reassembly / reordering is not supported.  This
+should only be a problem for the case of multigets that span more than one
+packet.  In these cases, an error will be reported indicating the command was
+truncated.
+
 ## Arguments
 
     $ ./mcsauna --help
