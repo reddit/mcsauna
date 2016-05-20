@@ -1,8 +1,8 @@
 # mcsauna
 
-mcsauna allows you to track the hottest keys on your memcached instances, 
-reporting back in a graphite-friendly format.  Regexs can be specified to 
-group similar keys into the same bucket, for high-cardinality memcached 
+mcsauna allows you to track the hottest keys on your memcached instances,
+reporting back in a graphite-friendly format.  Regexes can be specified to
+group similar keys into the same bucket, for high-cardinality memcached
 instances, or tracking lots of keys over time.
 
 Key rates are reported in the format:
@@ -13,7 +13,7 @@ Errors in processing are reported in the format:
 
     mcsauna.errors.bar: 3
 
-If you are using diamond, you can output these to a file and watch via 
+If you are using diamond, you can output these to a file and watch via
 [FilesCollector](http://diamond.readthedocs.io/en/latest/collectors/FilesCollector/).
 
 ## Arguments
@@ -38,8 +38,8 @@ If you are using diamond, you can output these to a file and watch via
 
 ## Configuration
 
-All command-line options can be specified via a configuration file in json 
-format.  Regular expressions can only be specified in config.  Command-line 
+All command-line options can be specified via a configuration file in json
+format.  Regular expressions can only be specified in config.  Command-line
 arguments will override settings passed in configuration.
 
 Pass a configuration file using `-c`:
@@ -47,7 +47,7 @@ Pass a configuration file using `-c`:
     # ./mcsauna -c conf.json
 
 Example configuration:
-    
+
     {
          "regexps": [
              {"re": "^Foo_[0-9]+$", "name": "foo"},
@@ -63,5 +63,5 @@ Example configuration:
          "output_file": "/tmp/mcsauna.out"
      }
 
-If a name is not specified for a regular expression, the regular expression 
+If a name is not specified for a regular expression, the regular expression
 itself will be used in the reported stat.
