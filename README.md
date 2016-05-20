@@ -65,3 +65,5 @@ Example configuration:
 
 If a name is not specified for a regular expression, the regular expression
 itself will be used in the reported stat.
+
+If regexes are specified, individual hot keys will not be reported.
