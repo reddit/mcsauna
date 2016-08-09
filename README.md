@@ -1,7 +1,7 @@
 # mcsauna
 
 mcsauna allows you to track the hottest keys on your memcached instances,
-reporting back in a graphite-friendly format.  Regexes can be specified to
+reporting back in a graphite-friendly format.  Regexps can be specified to
 group similar keys into the same bucket, for high-cardinality memcached
 instances, or tracking lots of keys over time.
 
