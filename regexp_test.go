@@ -31,10 +31,3 @@ func TestRegexp(t *testing.T) {
 		}
 	}
 }
-
-func TestRegexpNameReplacement(t *testing.T) {
-	regexp_key, _ := NewRegexpKey("^[a-f|0-9]{32}$", "")
-	if regexp_key.Name != "a-f0-932" {
-		t.Errorf("Expected regexp name %s, got %s", "a-f0-932", regexp_key.Name)
-	}
-}
