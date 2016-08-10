@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 type RegexpConfig struct {
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	Re   string `json:"re"`
 }
 
@@ -34,5 +35,14 @@ func NewConfig(config_data []byte) (config Config, err error) {
 	if err != nil {
 		return config, err
 	}
+
+	// Validate config
+	for _, regexp_config := range config.Regexps {
+		if regexp_config.Name == "" || regexp_config.Re == "" {
+			return config, errors.New(
+				"Config error: regular expressions must have both a 're' and 'name' field.")
+		}
+	}
+
 	return config, nil
 }
