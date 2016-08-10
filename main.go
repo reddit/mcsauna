@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"flag"
 	"fmt"
 	"github.com/google/gopacket"
@@ -29,12 +30,12 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool)
 			if top_keys.Len() == 0 {
 				break
 			}
-			key := top_keys.Pop()
+			key := heap.Pop(top_keys)
 			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key.(*Key).Name, key.(*Key).Hits)
 		}
 		if config.ShowErrors {
 			for top_errors.Len() > 0 {
-				err := top_errors.Pop()
+				err := heap.Pop(top_errors)
 				output += fmt.Sprintf(
 					"mcsauna.errors.%s: %d\n", err.(*Key).Name, err.(*Key).Hits)
 			}

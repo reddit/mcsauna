@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"testing"
 )
 
@@ -18,28 +19,22 @@ func stringsEqual(first []string, second []string) bool {
 
 func TestHotKeys(t *testing.T) {
 	h := NewHotKeyPool()
-	h.Add([]string{"foo", "foo", "bar", "baz", "baz", "baz", "car", "fish", "boat", "zoo", "zoo"})
-
-	// Validate top keys
+	h.Add([]string{"foo", "foo", "baz", "baz", "bar", "baz"})
 	top_keys := h.GetTopKeys()
-	//                        3       2      2      1      1      1       1
-	expected_keys := []string{"baz", "foo", "zoo", "bar", "car", "fish", "boat"}
-	if !stringsEqual(top_keys, expected_keys) {
-		t.Errorf("Expected top keys %v, got %v\n", expected_keys, top_keys)
+	expected_keys := []Key{
+		Key{"baz", 3},
+		Key{"foo", 2},
+		Key{"bar", 1},
 	}
-
-	// Validate hits
-	if h.GetHits("foo") != 2 {
-		t.Errorf("Expected key %s to have %d hits, got %vdn", "foo", 2, h.GetHits("foo"))
-	}
-	if h.GetHits("bar") != 1 {
-		t.Errorf("Expected key %s to have %d hits, got %vdn", "bar", 1, h.GetHits("bar"))
-	}
-	if h.GetHits("baz") != 3 {
-		t.Errorf("Expected key %s to have %d hits, got %vdn", "baz", 3, h.GetHits("baz"))
-	}
-	if h.GetHits("zoo") != 2 {
-		t.Errorf("Expected key %s to have %d hits, got %vdn", "zoo", 3, h.GetHits("zoo"))
+	for _, key := range expected_keys {
+		popped_key := heap.Pop(top_keys).(*Key)
+		if key.Name != popped_key.Name {
+			t.Errorf("Expected top key %v, got %v\n", key.Name, popped_key.Name)
+		}
+		if key.Hits != popped_key.Hits {
+			t.Errorf("Expected key %s to have %d hits, got %vdn",
+				key.Name, key.Hits, popped_key.Hits)
+		}
 	}
 }
 
@@ -52,15 +47,10 @@ func TestHotKeysClone(t *testing.T) {
 	// Validate old top keys
 	top_keys := rotated.GetTopKeys()
 	expected_keys := []string{"baz", "foo", "bar"}
-	if !stringsEqual(top_keys, expected_keys) {
-		t.Errorf("Expected top keys %v, got %v\n", expected_keys, top_keys)
+	for _, key := range expected_keys {
+		popped_key := heap.Pop(top_keys).(*Key)
+		if key != popped_key.Name {
+			t.Errorf("Expected top key %v, got %v\n", key, popped_key)
+		}
 	}
-
-	// Validate new top keys
-	top_keys = h.GetTopKeys()
-	expected_keys = []string{}
-	if !stringsEqual(top_keys, expected_keys) {
-		t.Errorf("Expected top keys %v, got %v\n", expected_keys, top_keys)
-	}
-
 }

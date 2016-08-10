@@ -16,7 +16,8 @@ type KeyHeap []*Key
 
 func (h KeyHeap) Len() int { return len(h) }
 
-// Less sorts in descending order (i.e. use ">" rather than "<")
+// Less sorts in reverse order so we will pop the hottest keys first
+// (i.e. we use > rather than <).
 func (h KeyHeap) Less(i, j int) bool { return h[i].Hits > h[j].Hits }
 
 func (h KeyHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
