@@ -1,28 +1,48 @@
 package main
 
 import (
+	"container/heap"
 	"sync"
 )
 
-type Hotness struct {
-	// The overall position relative to other keys
-	position int
-	// The number of hits the key has had in the current time period
-	hits int
+type Key struct {
+	Name string
+	Hits int
+}
+
+// KeyHeap keeps track of hot keys and pops them off ordered by hotness,
+// greatest hotness first.
+type KeyHeap []*Key
+
+func (h KeyHeap) Len() int { return len(h) }
+
+// Less sorts in descending order (i.e. use ">" rather than "<")
+func (h KeyHeap) Less(i, j int) bool { return h[i].Hits > h[j].Hits }
+
+func (h KeyHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+
+func (h *KeyHeap) Push(x interface{}) {
+	*h = append(*h, x.(*Key))
+}
+
+func (h *KeyHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
 }
 
 type HotKeyPool struct {
-	Lock             sync.Mutex
-	items            int
-	keys_by_position []string
-	hotness_by_key   map[string]*Hotness
+	Lock sync.Mutex
+
+	// Map of keys to hits
+	items map[string]int
 }
 
 func NewHotKeyPool() *HotKeyPool {
 	h := &HotKeyPool{}
-	h.items = 0
-	h.keys_by_position = []string{}
-	h.hotness_by_key = map[string]*Hotness{}
+	h.items = make(map[string]int)
 	return h
 }
 
@@ -33,70 +53,47 @@ func (h *HotKeyPool) Add(keys []string) {
 	defer h.Lock.Unlock()
 
 	for _, key := range keys {
-
-		// Update hits
-		if val, ok := h.hotness_by_key[key]; ok {
-			val.hits += 1
-
-		PositionUpdateLoop:
-			for {
-
-				// If the key is already the most hot, continue
-				if val.position == 0 {
-					break PositionUpdateLoop
-				}
-
-				// Keep moving the key up until it's reached another key that
-				// has more hits
-				higher_key := h.keys_by_position[val.position-1]
-				if val.hits > h.hotness_by_key[higher_key].hits {
-					h.keys_by_position[val.position-1], h.keys_by_position[val.position] = h.keys_by_position[val.position], h.keys_by_position[val.position-1]
-					h.hotness_by_key[higher_key].position += 1
-					h.hotness_by_key[key].position -= 1
-				} else {
-					break PositionUpdateLoop
-				}
-
-				val, _ = h.hotness_by_key[key]
-			}
-
+		if _, ok := h.items[key]; ok {
+			h.items[key] += 1
 		} else {
-			h.items += 1
-			h.keys_by_position = append(h.keys_by_position, key)
-			h.hotness_by_key[key] = &Hotness{h.items - 1, 1}
+			h.items[key] = 1
 		}
 
 	}
 }
 
 // GetTopKeys returns a list keys, ordered by number of hits, descending.
-func (h *HotKeyPool) GetTopKeys() []string {
+func (h *HotKeyPool) GetTopKeys() *KeyHeap {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
-	return h.keys_by_position
+
+	top_keys := &KeyHeap{}
+	heap.Init(top_keys)
+
+	for key, hits := range h.items {
+		heap.Push(top_keys, &Key{key, hits})
+	}
+	return top_keys
 }
 
 func (h *HotKeyPool) GetHits(key string) int {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
-	return h.hotness_by_key[key].hits
+	return h.items[key]
 }
 
 // Rotate clears the data on the existing HotKeyPool, returning a new pool
-// containing the old data.
+// containing the old data.  This allows sorting and reporting to happen in
+// another goroutine, while counting can continue on new keys.
 func (h *HotKeyPool) Rotate() *HotKeyPool {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
 
 	// Clone existing
-	new_hot_key_pool := &HotKeyPool{}
+	new_hot_key_pool := NewHotKeyPool()
 	new_hot_key_pool.items = h.items
-	new_hot_key_pool.keys_by_position = h.keys_by_position
-	new_hot_key_pool.hotness_by_key = h.hotness_by_key
 
 	// Clear existing values
-	h.items = 0
-	h.keys_by_position = []string{}
-	h.hotness_by_key = map[string]*Hotness{}
+	h.items = make(map[string]int)
 	return new_hot_key_pool
 }

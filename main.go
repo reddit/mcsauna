@@ -26,19 +26,17 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool)
 		// Build output
 		output := ""
 		for i := 0; i < config.NumItemsToReport; i++ {
-			if len(top_keys) <= i {
+			if top_keys.Len() == 0 {
 				break
 			}
-			key := top_keys[i]
-			hits := rotated_keys.GetHits(key)
-			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key, hits)
+			key := top_keys.Pop()
+			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key.(*Key).Name, key.(*Key).Hits)
 		}
 		if config.ShowErrors {
-			for i := 0; i < len(top_errors); i++ {
-				error_name := top_errors[i]
-				hits := rotated_errors.GetHits(error_name)
+			for top_errors.Len() > 0 {
+				err := top_errors.Pop()
 				output += fmt.Sprintf(
-					"mcsauna.errors.%s: %d\n", error_name, hits)
+					"mcsauna.errors.%s: %d\n", err.(*Key).Name, err.(*Key).Hits)
 			}
 		}
 

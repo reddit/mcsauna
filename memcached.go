@@ -26,7 +26,7 @@ func itemInArray(item string, array []string) bool {
 }
 
 // parseCommand parses a command and list of keys the command is operating on from
-// a sequence of application data bytes.
+// a sequence of application-level data bytes.
 func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 
 	// Parse out the command
