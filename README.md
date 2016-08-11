@@ -29,7 +29,7 @@ truncated.
             config file
       -e    show errors in parsing as a metric (default true)
       -i string
-            capture interface (default any)
+            capture interface (default "any")
       -n int
             reporting interval (seconds, default 5)
       -p int
@@ -62,10 +62,16 @@ Example configuration:
          "interval": 5,
          "interface": "eth0",
          "port": 11211,
-         "num_items_to_report": 20,
          "quiet": false,
          "show_errors": true,
          "output_file": "/tmp/mcsauna.out"
      }
 
-If regexps are specified, individual hot keys will not be reported.
+If regexps are specified, individual hot keys will not be reported.  If not
+specifying regular expressions, you can limit the number of items that will
+be reported:
+
+    {
+         "interval": 5,
+         "num_items_to_report": 20
+     }
