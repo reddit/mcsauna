@@ -74,4 +74,4 @@ be reported:
     {
          "interval": 5,
          "num_items_to_report": 20
-     }
+    }

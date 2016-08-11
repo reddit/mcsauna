@@ -47,8 +47,8 @@ func NewHotKeyPool() *HotKeyPool {
 	return h
 }
 
-// Add adds a new key, incrementing its hit counter and updating its position
-// in the top keys list.
+// Add adds a new key to the hit counter or increments the key's hit counter
+// if it is already present.
 func (h *HotKeyPool) Add(keys []string) {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
@@ -63,7 +63,8 @@ func (h *HotKeyPool) Add(keys []string) {
 	}
 }
 
-// GetTopKeys returns a list keys, ordered by number of hits, descending.
+// GetTopKeys returns a KeyHeap object.  Keys can be popped from the
+// resulting object and will be ordered by hits, descending.
 func (h *HotKeyPool) GetTopKeys() *KeyHeap {
 	h.Lock.Lock()
 	defer h.Lock.Unlock()
