@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+
+GOPKG = github.com/reddit/mcsauna
+GOPATH = "$(CURDIR)"/debian/tmp/usr/lib/gocode
+
+%:
+	dh $@
+
+clean:
+	dh_clean
+	rm -f mcsauna.debhelper.log
+
+binary-arch: clean
+	dh_prep
+	dh_installdirs /usr/bin
+	mkdir -p "${GOPATH}/src/${GOPKG}"
+	find . -path ./debian -prune -o -type f -name '*.go' -exec tar cf - {} + \
+		| (cd "${GOPATH}/src/${GOPKG}" && tar xvf -)
+	GOPATH=${GOPATH} go build -v -o ${GOPATH}/bin/mcsauna ${GOPKG}
+	GOPATH=${GOPATH} go test ${GOPKG}
+	dh_install /usr/lib/gocode/bin/mcsauna /usr/bin
+	dh_strip
+	dh_installinit
+	dh_installchangelogs
+	dh_installdocs
+	dh_installdeb
+	dh_compress
+	dh_fixperms
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-arch
+
