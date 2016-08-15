@@ -2,6 +2,18 @@
 
 set -e
 
-mkdir -p /var/lib/mcsauna/
+case "$1" in
+  configure)
+    if ! getent passwd Debian-mcsauna > /dev/null ; then
+
+      echo 'Adding system-user for mcsauna' 1>&2
+      adduser --system --group --quiet --home /var/spool/mcsauna \
+        --no-create-home --disabled-login --force-badname Debian-mcsauna
+    fi
+
+    install -d -oDebian-mcsauna -gDebian-mcsauna -m755 /var/lib/mcsauna/
+    setcap cap_net_raw,cap_net_admin=ep /usr/bin/mcsauna
+    ;;
+esac
 
 #DEBHELPER#
