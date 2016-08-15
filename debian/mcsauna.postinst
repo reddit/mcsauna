@@ -12,7 +12,7 @@ case "$1" in
     fi
 
     install -d -oDebian-mcsauna -gDebian-mcsauna -m755 /var/lib/mcsauna/
-    setcap cap_net_raw,cap_net_admin=ep /usr/bin/mcsauna
+    setcap cap_net_raw,cap_setpcap=ep /usr/bin/mcsauna
     ;;
 esac
 
