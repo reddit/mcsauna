@@ -1,7 +1,13 @@
 #!/usr/bin/make -f
 
 GOPKG = github.com/reddit/mcsauna
-GOPATH = "$(CURDIR)"/debian/tmp/usr/lib/gocode
+
+# These paths are currently hacks to get around the ancient golang
+# ubuntu package and the lack of and available package for the google pcap
+# library, which this depends on.  They should be changed to fit your local
+# build environment.
+GOPATH = "/home/vagrant/work"
+GOBIN = "/usr/local/go/bin/go"
 
 %:
 	dh $@
@@ -16,9 +22,9 @@ binary-arch: clean
 	mkdir -p "${GOPATH}/src/${GOPKG}"
 	find . -path ./debian -prune -o -type f -name '*.go' -exec tar cf - {} + \
 		| (cd "${GOPATH}/src/${GOPKG}" && tar xvf -)
-	GOPATH=${GOPATH} go build -v -o ${GOPATH}/bin/mcsauna ${GOPKG}
-	GOPATH=${GOPATH} go test ${GOPKG}
-	dh_install /usr/lib/gocode/bin/mcsauna /usr/bin
+	GOPATH=${GOPATH} ${GOBIN} build -v -o $(CURDIR)/debian/tmp/bin/mcsauna ${GOPKG}
+	GOPATH=${GOPATH} ${GOBIN} test ${GOPKG}
+	dh_install bin/mcsauna /usr/bin
 	dh_strip
 	dh_installinit
 	dh_installchangelogs
