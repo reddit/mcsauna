@@ -1,0 +1,14 @@
+Source: mcsauna
+Maintainer: Daniel Ellis <daniel.ellis@reddit.com>
+Section: devel
+Priority: optional
+Build-Depends: debhelper (>= 7.0)
+Standards-Version: 3.9.3
+Homepage: http://github.com/reddit/mcsauna
+Vcs-Git: git://github.com/reddit/mcsauna.git
+
+Package: mcsauna
+Architecture: amd64
+Depends: ${misc:Depends}, libcap2-bin
+Description: Memcached hot key tracker and stats generator
+ Watches the network via pcap and outputs graphite-friendly stats of hot keys.
