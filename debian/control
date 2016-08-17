@@ -9,6 +9,6 @@ Vcs-Git: git://github.com/reddit/mcsauna.git
 
 Package: mcsauna
 Architecture: amd64
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, libcap2-bin
 Description: Memcached hot key tracker and stats generator
  Watches the network via pcap and outputs graphite-friendly stats of hot keys.
