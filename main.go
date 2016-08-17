@@ -31,13 +31,13 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool)
 				break
 			}
 			key := heap.Pop(top_keys)
-			output += fmt.Sprintf("mcsauna.keys.%s: %d\n", key.(*Key).Name, key.(*Key).Hits)
+			output += fmt.Sprintf("mcsauna.keys.%s %d\n", key.(*Key).Name, key.(*Key).Hits)
 		}
 		if config.ShowErrors {
 			for top_errors.Len() > 0 {
 				err := heap.Pop(top_errors)
 				output += fmt.Sprintf(
-					"mcsauna.errors.%s: %d\n", err.(*Key).Name, err.(*Key).Hits)
+					"mcsauna.errors.%s %d\n", err.(*Key).Name, err.(*Key).Hits)
 			}
 		}
 
