@@ -156,6 +156,13 @@ func main() {
 					matched_regex, err := regexp_keys.Match(key)
 					if err != nil {
 						match_errors = append(match_errors, "match_error")
+
+						// The user has requested that we also show keys that
+						// weren't matched at all, probably for debugging.
+						if config.ShowUnmatched {
+							matches = append(matches, key)
+						}
+
 					} else {
 						matches = append(matches, matched_regex)
 					}
