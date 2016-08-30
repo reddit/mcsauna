@@ -44,8 +44,9 @@ truncated.
 ## Configuration
 
 All command-line options can be specified via a configuration file in json
-format.  Regular expressions can only be specified in config.  Command-line
-arguments will override settings passed in configuration.
+format.  Regular expressions and related options can only be specified in
+config.  Command-line arguments will override settings passed in
+configuration.
 
 Pass a configuration file using `-c`:
 
@@ -75,3 +76,6 @@ be reported:
          "interval": 5,
          "num_items_to_report": 20
     }
+
+When debugging regular expressions, you can see which keys did not match
+with the `show_unmatched` flag set to `true`.

@@ -26,13 +26,25 @@ func startReportingLoop(config Config, hot_keys *HotKeyPool, errors *HotKeyPool)
 
 		// Build output
 		output := ""
-		for i := 0; i < config.NumItemsToReport; i++ {
+		/* Show keys */
+		i := 0
+		for {
 			if top_keys.Len() == 0 {
 				break
 			}
+
+			/* Check if we've reached the specified key limit, but only if
+			 * the user didn't specify regular expressions to match on. */
+			if len(config.Regexps) == 0 && i >= config.NumItemsToReport {
+				break
+			}
+
 			key := heap.Pop(top_keys)
 			output += fmt.Sprintf("mcsauna.keys.%s %d\n", key.(*Key).Name, key.(*Key).Hits)
+
+			i += 1
 		}
+		/* Show errors */
 		if config.ShowErrors {
 			for top_errors.Len() > 0 {
 				err := heap.Pop(top_errors)
@@ -156,6 +168,13 @@ func main() {
 					matched_regex, err := regexp_keys.Match(key)
 					if err != nil {
 						match_errors = append(match_errors, "match_error")
+
+						// The user has requested that we also show keys that
+						// weren't matched at all, probably for debugging.
+						if config.ShowUnmatched {
+							matches = append(matches, key)
+						}
+
 					} else {
 						matches = append(matches, matched_regex)
 					}

@@ -1,3 +1,10 @@
+mcsauna (1.0.1) precise trusty; urgency=low
+
+  * add ability to include keys unmatched by regular expressions in output
+  * do not limit number of output lines when regular expressions are specified
+
+ -- Daniel Ellis <daniel.ellis@reddit.com>  Mon, 29 Aug 2016 14:53:33 -0700
+
 mcsauna (1.0.0) precise trusty; urgency=low
 
   * initial release

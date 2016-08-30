@@ -19,6 +19,11 @@ type Config struct {
 	Quiet            bool           `json:"quiet"`
 	OutputFile       string         `json:"output_file"`
 	ShowErrors       bool           `json:"show_errors"`
+
+	/* When using regexps, include a list of keys that did not match in the
+	 * output.  Useful for debugging regular expressions.
+	 */
+	ShowUnmatched bool `json:"show_unmatched"`
 }
 
 func NewConfig(config_data []byte) (config Config, err error) {
@@ -30,6 +35,7 @@ func NewConfig(config_data []byte) (config Config, err error) {
 		NumItemsToReport: 20,
 		Quiet:            false,
 		ShowErrors:       true,
+		ShowUnmatched:    false,
 	}
 	err = json.Unmarshal(config_data, &config)
 	if err != nil {
