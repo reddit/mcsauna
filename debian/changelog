@@ -1,3 +1,10 @@
+mcsauna (1.0.2) precise trusty; urgency=low
+
+  * add support for incr and decr
+  * output all errors as a stat, not just truncations
+
+ -- Daniel Ellis <daniel.ellis@reddit.com>  Thu, 01 Sep 2016 11:53:33 -0700
+
 mcsauna (1.0.1) precise trusty; urgency=low
 
   * add ability to include keys unmatched by regular expressions in output
