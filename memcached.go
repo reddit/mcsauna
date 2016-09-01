@@ -9,9 +9,19 @@ const (
 	ERR_NONE = iota
 	ERR_NO_CMD
 	ERR_INVALID_CMD
-	ERR_TRUNCATED_CMD
+	ERR_TRUNCATED
 	ERR_INCOMPLETE_CMD
 )
+
+/* A map to translate errors that may arise to the name of the stat that
+ * should be reported back when the error occurs. An entry should be added
+ * for all non-none errors that can be returned. */
+var ERR_TO_STAT = map[int]string{
+	ERR_NO_CMD:         "no_cmd",
+	ERR_INVALID_CMD:    "invalid_cmd",
+	ERR_TRUNCATED:      "truncated",
+	ERR_INCOMPLETE_CMD: "incomplete_cmd",
+}
 
 var VALID_READ_CMDS = []string{"get", "gets"}
 var VALID_WRITE_CMDS = []string{"set", "add", "replace", "append", "prepend", "incr", "decr"}
@@ -38,7 +48,7 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 	// Find the first newline
 	newline_i := bytes.Index(app_data, []byte("\r\n"))
 	if newline_i == -1 {
-		return "", []string{}, ERR_TRUNCATED_CMD
+		return "", []string{}, ERR_TRUNCATED
 	}
 
 	// Validate command
@@ -60,6 +70,7 @@ func parseCommand(app_data []byte) (cmd string, keys []string, cmd_err int) {
 
 	// Validate keys
 	if len(keys) == 0 || (len(keys) == 1 && keys[0] == "") {
+		/* The command was valid, but we didn't find any keys. */
 		return "", []string{}, ERR_INCOMPLETE_CMD
 	}
 

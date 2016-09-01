@@ -15,7 +15,7 @@ var PARSE_COMMAND_TEST_TABLE = []ParseCommandTest{
 	ParseCommandTest{[]byte("set foo 0 0 3\r\nabc\r\n"), "set", []string{"foo"}, ERR_NONE},
 	ParseCommandTest{[]byte("get bar\r\n"), "get", []string{"bar"}, ERR_NONE},
 	ParseCommandTest{[]byte("\r\n"), "", []string{}, ERR_NO_CMD},
-	ParseCommandTest{[]byte("get foo"), "", []string{}, ERR_TRUNCATED_CMD},
+	ParseCommandTest{[]byte("get foo"), "", []string{}, ERR_TRUNCATED},
 	ParseCommandTest{[]byte("foo bar\r\n"), "", []string{}, ERR_INVALID_CMD},
 	ParseCommandTest{[]byte("get \r\n"), "", []string{}, ERR_INCOMPLETE_CMD},
 	ParseCommandTest{[]byte("get\r\n"), "", []string{}, ERR_NO_CMD},

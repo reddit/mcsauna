@@ -153,8 +153,8 @@ func main() {
 		}
 
 		// Process data
-		_, keys, cmd_err := parseCommand(app_data.Payload())
-		if cmd_err == ERR_NONE {
+		_, keys, cmd := parseCommand(app_data.Payload())
+		if cmd == ERR_NONE {
 
 			// Raw key
 			if len(config.Regexps) == 0 {
@@ -182,9 +182,8 @@ func main() {
 				hot_keys.Add(matches)
 				errors.Add(match_errors)
 			}
-		} else if cmd_err == ERR_TRUNCATED_CMD {
-			errors.Add([]string{"truncated"})
+		} else {
+			errors.Add([]string{ERR_TO_STAT[cmd]})
 		}
-
 	}
 }
