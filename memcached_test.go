@@ -19,6 +19,8 @@ var PARSE_COMMAND_TEST_TABLE = []ParseCommandTest{
 	ParseCommandTest{[]byte("foo bar\r\n"), "", []string{}, ERR_INVALID_CMD},
 	ParseCommandTest{[]byte("get \r\n"), "", []string{}, ERR_INCOMPLETE_CMD},
 	ParseCommandTest{[]byte("get\r\n"), "", []string{}, ERR_NO_CMD},
+	ParseCommandTest{[]byte("incr foo 1\r\n"), "incr", []string{"foo"}, ERR_NONE},
+	ParseCommandTest{[]byte("decr foo 1\r\n"), "decr", []string{"foo"}, ERR_NONE},
 }
 
 func TestParseCommand(t *testing.T) {

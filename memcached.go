@@ -14,7 +14,7 @@ const (
 )
 
 var VALID_READ_CMDS = []string{"get", "gets"}
-var VALID_WRITE_CMDS = []string{"set", "add", "replace", "append", "prepend"}
+var VALID_WRITE_CMDS = []string{"set", "add", "replace", "append", "prepend", "incr", "decr"}
 
 func itemInArray(item string, array []string) bool {
 	for _, i := range array {
