@@ -159,8 +159,20 @@ func main() {
 		payload = app_data.Payload()
 
 		// Process data
+		prev_payload_len := 0
 		for len(payload) > 0 {
 			_, keys, payload, cmd_err = parseCommand(payload)
+
+			// ... We keep track of the payload length to make sure we don't end
+			// ... up in an infinite loop if one of the processors repeatedly
+			// ... sends us the same remainder.  This should never happen, but
+			// ... if it does, it would be better to move on to the next packet
+			// ... rather than spin CPU doing nothing.
+			if len(payload) == prev_payload_len {
+				break
+			}
+			prev_payload_len = len(payload)
+
 			if cmd_err == ERR_NONE {
 
 				// Raw key
