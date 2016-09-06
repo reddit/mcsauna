@@ -1,3 +1,9 @@
+mcsauna (1.0.3) precise trusty; urgency=low
+
+  * add support for multiple commands per packet
+
+ -- Daniel Ellis <daniel.ellis@reddit.com>  Tue, 06 Sep 2016 12:53:33 -0700
+
 mcsauna (1.0.2) precise trusty; urgency=low
 
   * add support for incr and decr
