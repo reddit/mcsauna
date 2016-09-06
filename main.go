@@ -146,44 +146,52 @@ func main() {
 	go startReportingLoop(config, hot_keys, errors)
 
 	// Grab a packet
+	var (
+		payload []byte
+		keys    []string
+		cmd_err int
+	)
 	for packet := range packetSource.Packets() {
 		app_data := packet.ApplicationLayer()
 		if app_data == nil {
 			continue
 		}
+		payload = app_data.Payload()
 
 		// Process data
-		_, keys, cmd := parseCommand(app_data.Payload())
-		if cmd == ERR_NONE {
+		for len(payload) > 0 {
+			_, keys, payload, cmd_err = parseCommand(payload)
+			if cmd_err == ERR_NONE {
 
-			// Raw key
-			if len(config.Regexps) == 0 {
-				hot_keys.Add(keys)
-			} else {
+				// Raw key
+				if len(config.Regexps) == 0 {
+					hot_keys.Add(keys)
+				} else {
 
-				// Regex
-				matches := []string{}
-				match_errors := []string{}
-				for _, key := range keys {
-					matched_regex, err := regexp_keys.Match(key)
-					if err != nil {
-						match_errors = append(match_errors, "match_error")
+					// Regex
+					matches := []string{}
+					match_errors := []string{}
+					for _, key := range keys {
+						matched_regex, err := regexp_keys.Match(key)
+						if err != nil {
+							match_errors = append(match_errors, "match_error")
 
-						// The user has requested that we also show keys that
-						// weren't matched at all, probably for debugging.
-						if config.ShowUnmatched {
-							matches = append(matches, key)
+							// The user has requested that we also show keys that
+							// weren't matched at all, probably for debugging.
+							if config.ShowUnmatched {
+								matches = append(matches, key)
+							}
+
+						} else {
+							matches = append(matches, matched_regex)
 						}
-
-					} else {
-						matches = append(matches, matched_regex)
 					}
+					hot_keys.Add(matches)
+					errors.Add(match_errors)
 				}
-				hot_keys.Add(matches)
-				errors.Add(match_errors)
+			} else {
+				errors.Add([]string{ERR_TO_STAT[cmd_err]})
 			}
-		} else {
-			errors.Add([]string{ERR_TO_STAT[cmd]})
 		}
 	}
 }
