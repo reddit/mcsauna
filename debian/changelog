@@ -1,3 +1,9 @@
+mcsauna (1.0.4) precise trusty; urgency=low
+
+  * fix issue with truncated packets introduced by 1.0.3
+
+ -- Daniel Ellis <daniel.ellis@reddit.com>  Wed, 07 Sep 2016 18:13:33 -0700
+
 mcsauna (1.0.3) precise trusty; urgency=low
 
   * add support for multiple commands per packet
