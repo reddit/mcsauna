@@ -85,9 +85,15 @@ func processSingleKeyWithData(first_line string, remainder []byte) (keys []strin
 		return []string{}, []byte{}, ERR_INVALID_CMD
 	}
 
-	// Return parsed data
+	// Make sure we got a full command
 	// ... bytes + 2 to account for trailing "\r\n"
-	return []string{key}, remainder[bytes+2:], ERR_NONE
+	next_command_idx := bytes + 2
+	if int64(len(remainder)) < next_command_idx {
+		return []string{}, []byte{}, ERR_TRUNCATED
+	}
+
+	// Return parsed data
+	return []string{key}, remainder[next_command_idx:], ERR_NONE
 
 }
 
