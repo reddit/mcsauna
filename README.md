@@ -79,3 +79,9 @@ be reported:
 
 When debugging regular expressions, you can see which keys did not match
 with the `show_unmatched` flag set to `true`.
+
+## Known Issues
+
+The attempt to add support for multiple commands per packet caused a
+performance regression that hasn't been addressed.  If you're experiencing
+this, version 1.0.2 (3dbb6d5179448f40c183cbb489c07d0862b8e57a) is recommended.
